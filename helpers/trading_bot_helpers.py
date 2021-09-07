@@ -30,7 +30,7 @@ def findLastBuy(crypto):
 def getPricePerUnit(crypto):
 	return float(binance_client.get_symbol_ticker(symbol=crypto)["price"].replace(',', ''))
 
-# Returns profit percent of currently owned crypto
+# Returns profit percent of currently owned crypto. Used to determine sell signal
 def getProfitPercent(crypto="NA"):
 	originalPricePerUnit, _ = findLastBuy(crypto)
 	currentPricePerUnit = getPricePerUnit(crypto)
@@ -38,21 +38,26 @@ def getProfitPercent(crypto="NA"):
 	print("Last bought {0} at pricePerUnit {1}, currentPricePerUnit is {2}, so profit percent is: {3}".format(crypto, originalPricePerUnit, currentPricePerUnit, profitPercent))
 	return profitPercent
 
-# TODO implement this method
-def getProfitAndTimeToProfit(crypto="NA", amount=0):
-	bought_at = 0#get last recorded buy from db
-	time_of_purchase = 0#get time of purchase
+# Used to calculate time since the saved datetime from google sheet
+def time_since_saved_datetime_str(datetime_str):
+	return (datetime.now() - datetime.strptime(datetime_str[:-7], "%Y-%m-%d %H:%M:%S"))
+
+# Used for logging successfulness of sell history
+def getProfitAndTimeToProfit(crypto="NA", amount=0, sold_at=0):
+	bought_at, time_of_purchase = findLastBuy(crypto)
+	return (sold_at - bought_at)*amount, float(sold_at - bought_at)/float(bought_at), time_since_saved_datetime_str(time_of_purchase)
 
 # FIXED
 # Returns list of ticker symbols for currently owned cryptos
 def getOwnedCryptosFromAcc(account):
-	print("owned cryptos are: ")
+	print("owned cryptos are:\n---------------------------")
 	owned_cryptos = []
 	balances = account["balances"]
 	for crypto in balances:
 		if float(crypto["free"]) > 0:
 			owned_cryptos.append(crypto["asset"])
 			print(crypto["asset"] + " - " + crypto["free"])
+	print("---------------------------\n")
 	return owned_cryptos
 
 def hasPercentProfit(crypto, percent):
@@ -101,7 +106,7 @@ def sellCryptos(cryptos):
 
 
 # Sends an email update about trading bot's current state
-def emailUpdate(email="jettpierson@gmail.com", hour=4, minute=30):
+def emailUpdate(email="", hour=4, minute=30):
 	now = datetime.now().time()
 	if now.hour == hour and (now.minute == 30 or now.minute == 31):
 		funds = 0#Get current account balance
