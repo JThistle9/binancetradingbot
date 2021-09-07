@@ -85,19 +85,22 @@ def sellCrypto(crypto):
 			quantity=quantity)
 	log(crypto=crypto, amount=quantity, action="SELL")
 
-# Buys $20 of each crypto.
+# Buys an equal portion of funds of each crypto, or at least 20 dollars worth of some.
 # If we have less than $20 in funds, buy into the position with rest of funds and stop buying
 # If last opening found, buy into the position with rest of funds and stop buying
-def buyCryptos(cryptos, funds):
+def buyCryptos(cryptos, funds, least_invest_amount=20):
+	amount_per_crypto = float(funds)/float(len(crypto))
+	if amount_per_crypto < least_invest_amount:
+		amount_per_crypto = least_invest_amount
 	for i, crypto in enumerate(cryptos):
-		if funds < 20:
+		if funds < amount_per_crypto:
 			buyCrypto(crypto, funds)
 			break
 		elif i == len(cryptos) - 1:
 			buyCrypto(crypto, funds)
 			break
 		else:
-			buyCrypto(crypto, 20)
+			buyCrypto(crypto, amount_per_crypto)
 
 # Sell cryptos for current price in $
 def sellCryptos(cryptos):
@@ -105,6 +108,7 @@ def sellCryptos(cryptos):
 		sellCrypto(crypto)
 
 
+# TODO: Implement
 # Sends an email update about trading bot's current state
 def emailUpdate(email="", hour=4, minute=30):
 	now = datetime.now().time()
@@ -117,7 +121,9 @@ def emailUpdate(email="", hour=4, minute=30):
 		print("did NOT send email update...")
 		# Send an email to email containing current account balance, cryptos owned, and portfolio value
 
-
+# Logs buys and sells to Google Sheet for tracking purpose
+# Logs are also used by bot to find last buys of certain cryptos
+# Last buys are used to track profit percents and time to profits
 def log(crypto="N/A", amount=0, action="BUY/SELL"):
 
 	if action == "BUY":

@@ -32,7 +32,7 @@ def main():
 
 # Looks for new openings based on strategy.buySignal()
 # Buys into new openings with all current funds and sells old positions for more funds if necessary
-def analyzeBuySignals(unowned_cryptos, funds, can_sell, strategy):
+def analyzeBuySignals(unowned_cryptos, funds, can_sell, strategy, least_invest_amount=20):
 	print("\nAnalyzing buy signals for unowned cryptos...\n{0}\n".format(strategy.descriptionOfBuyStrategy()))
 	can_buy = []
 	for crypto in unowned_cryptos:
@@ -41,11 +41,11 @@ def analyzeBuySignals(unowned_cryptos, funds, can_sell, strategy):
 		
 	if can_buy:
 		# If we can sell old positions and there are more new openings than positions currently available, liquidate old positions. Otherwise, diamond hands for life.
-		if can_sell and len(can_buy) >= int(floor(funds / 20)):
+		if can_sell and len(can_buy) >= int(floor(funds / least_invest_amount)):
 			sellCryptos(can_sell)
 			time.sleep(2) 
 		# Buy into new positions
-		buyCryptos(can_buy, funds)
+		buyCryptos(can_buy, funds, least_invest_amount)
 	else:
 		print("\nFound no cryptos to buy...\n")
 
