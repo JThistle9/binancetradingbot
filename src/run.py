@@ -4,9 +4,9 @@ from helpers.init import parse_args, get_owned_and_unowned_cryptos
 
 watchlist = ["BTCUSDT", "ETHUSDT", "LTCUSDT", "ZENUSDT"]
 
-print("Running trading bot @ {0}...".format(datetime.now()))
-for crypto in watchlist:
-	get_historical_data(crypto, '5m', save = True)
+#print("Running trading bot @ {0}...".format(datetime.now()))
+#for crypto in watchlist:
+#	get_historical_data(crypto, '5m', save = True)
 
 # This is the main engine of the trading bot. 
 def main():
@@ -34,23 +34,22 @@ def main():
 # Buys into new openings with all current funds and sells old positions for more funds if necessary
 def analyzeBuySignals(unowned_cryptos, funds, can_sell, strategy, least_invest_amount=20):
 	print("\nAnalyzing buy signals for unowned cryptos...\n{0}\n".format(strategy.descriptionOfBuyStrategy()))
-	can_buy = []
+	should_buy = []
 	for crypto in unowned_cryptos:
 		if strategy.buySignal(crypto):				
-			can_buy.append(crypto)
+			should_buy.append(crypto)
 		
-	if can_buy:
+	if should_buy:
 		# If we can sell old positions and there are more new openings than positions currently available, liquidate old positions. Otherwise, diamond hands for life.
-		if can_sell and len(can_buy) >= int(floor(funds / least_invest_amount)):
+		if can_sell and len(should_buy) >= int(floor(funds / least_invest_amount)):
 			sellCryptos(can_sell)
-			time.sleep(2) 
 		# Buy into new positions
-		buyCryptos(can_buy, funds, least_invest_amount)
+		buyCryptos(should_buy, funds, least_invest_amount)
 	else:
 		print("\nFound no cryptos to buy...\n")
 
 # Looks to exit current positions based on strategy.sellSignal()
-# If exiting the position would not result in a loss, sell crypto. Otherwise it's diamond hands and we try to exit properly next time.
+# If exiting the position would not result in a loss, can sell crypto. Otherwise it's diamond hands and we try to exit properly next time.
 # If the position has at least sellablePercent (0.05) profit, add it to a list of sellable positions in case we need to liquidate in favor of new openings. 
 def analyzeSellSignals(owned_cryptos, strategy, sellablePercent=0.05):
 	print("\nAnalyzing sell signals for owned cryptos...\n{0}\n".format(strategy.descriptionOfSellStrategy()))
